@@ -23,9 +23,34 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame
+            && Cursor.lockState != CursorLockMode.Locked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
     void LateUpdate()
     {
         if (target == null) return;
+        if (Cursor.lockState != CursorLockMode.Locked) return;
 
         Vector2 mouseDelta = Vector2.zero;
         if (Mouse.current != null)
