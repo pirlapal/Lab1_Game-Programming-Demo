@@ -1,11 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ThirdPersonCamera : MonoBehaviour
 {
     public Transform target;
     public float distance = 5f;
     public float height = 2.5f;
-    public float mouseSensitivity = 3f;
+    public float mouseSensitivity = 0.3f;
     public float smoothSpeed = 10f;
 
     private float currentYaw;
@@ -26,8 +27,12 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        currentYaw += Input.GetAxis("Mouse X") * mouseSensitivity;
-        currentPitch -= Input.GetAxis("Mouse Y") * mouseSensitivity;
+        Vector2 mouseDelta = Vector2.zero;
+        if (Mouse.current != null)
+            mouseDelta = Mouse.current.delta.ReadValue();
+
+        currentYaw += mouseDelta.x * mouseSensitivity;
+        currentPitch -= mouseDelta.y * mouseSensitivity;
         currentPitch = Mathf.Clamp(currentPitch, -10f, 60f);
 
         Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
