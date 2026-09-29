@@ -46,15 +46,15 @@ public class SceneBuilder : Editor
         if (!AssetDatabase.IsValidFolder("Assets/Scenes"))
             AssetDatabase.CreateFolder("Assets", "Scenes");
 
-        Material floorRoom1Mat = MakeMaterial("Floor_Room1", new Color(0.35f, 0.35f, 0.35f));
-        Material floorRoom2Mat = MakeMaterial("Floor_Room2", new Color(0.12f, 0.12f, 0.3f));
-        Material wallRoom1Mat = MakeMaterial("Wall_Room1", new Color(0.76f, 0.69f, 0.5f));
-        Material wallRoom2Mat = MakeMaterial("Wall_Room2", new Color(0.55f, 0.14f, 0.14f));
-        Material hallwayMat = MakeMaterial("Hallway", new Color(0.45f, 0.45f, 0.45f));
-        Material platformMat = MakeMaterial("Platform", new Color(0.18f, 0.5f, 0.22f));
-        Material movingMat = MakeMaterial("MovingObject", new Color(0.92f, 0.6f, 0.08f));
-        Material playerMat = MakeMaterial("Player", new Color(0.2f, 0.4f, 0.85f));
-        Material accentMat = MakeMaterial("Accent", new Color(0.6f, 0.2f, 0.6f));
+        Material floorRoom1Mat = MakeTexturedMaterial("Floor_Room1", new Color(0.4f, 0.38f, 0.35f), "tile");
+        Material floorRoom2Mat = MakeTexturedMaterial("Floor_Room2", new Color(0.15f, 0.15f, 0.35f), "tile");
+        Material wallRoom1Mat = MakeTexturedMaterial("Wall_Room1", new Color(0.76f, 0.69f, 0.5f), "brick");
+        Material wallRoom2Mat = MakeTexturedMaterial("Wall_Room2", new Color(0.55f, 0.14f, 0.14f), "brick");
+        Material hallwayMat = MakeTexturedMaterial("Hallway", new Color(0.5f, 0.5f, 0.5f), "tile");
+        Material platformMat = MakeTexturedMaterial("Platform", new Color(0.2f, 0.5f, 0.22f), "wood");
+        Material movingMat = MakeTexturedMaterial("MovingObject", new Color(0.92f, 0.6f, 0.08f), "metal");
+        Material playerMat = MakeTexturedMaterial("Player", new Color(0.2f, 0.4f, 0.85f), "stripe");
+        Material accentMat = MakeTexturedMaterial("Accent", new Color(0.6f, 0.2f, 0.6f), "dots");
 
         // ── Room 1 ──────────────────────────────────────────────────
         GameObject room1 = new GameObject("Room1");
@@ -231,22 +231,132 @@ public class SceneBuilder : Editor
 
     static Material MakeMaterial(string name, Color color)
     {
-        string path = "Assets/Materials/" + name + ".mat";
-        Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+        return MakeTexturedMaterial(name, color, "checker");
+    }
+
+    static Material MakeTexturedMaterial(string name, Color color, string pattern)
+    {
+        string matPath = "Assets/Materials/" + name + ".mat";
+        string texPath = "Assets/Materials/" + name + "_tex.png";
+
+        Material existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
         if (existing != null)
+            AssetDatabase.DeleteAsset(matPath);
+
+        Texture2D oldTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
+        if (oldTex != null)
+            AssetDatabase.DeleteAsset(texPath);
+
+        if (!AssetDatabase.IsValidFolder("Assets/Materials"))
+            AssetDatabase.CreateFolder("Assets", "Materials");
+
+        Texture2D tex = GenerateTexture(color, pattern, 128);
+        byte[] pngData = tex.EncodeToPNG();
+        System.IO.File.WriteAllBytes(texPath, pngData);
+        AssetDatabase.ImportAsset(texPath);
+
+        TextureImporter importer = AssetImporter.GetAtPath(texPath) as TextureImporter;
+        if (importer != null)
         {
-            AssetDatabase.DeleteAsset(path);
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.filterMode = FilterMode.Bilinear;
+            importer.SaveAndReimport();
         }
+
+        Texture2D loadedTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
 
         Shader shader = Shader.Find("Universal Render Pipeline/Lit");
         if (shader == null)
             shader = Shader.Find("Standard");
 
         Material mat = new Material(shader);
-        mat.SetColor("_BaseColor", color);
-        mat.color = color;
-        AssetDatabase.CreateAsset(mat, path);
+        mat.SetColor("_BaseColor", Color.white);
+        mat.color = Color.white;
+
+        if (shader.name.Contains("Universal"))
+            mat.SetTexture("_BaseMap", loadedTex);
+        else
+            mat.SetTexture("_MainTex", loadedTex);
+
+        AssetDatabase.CreateAsset(mat, matPath);
         return mat;
+    }
+
+    static Texture2D GenerateTexture(Color baseColor, string pattern, int size)
+    {
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color darkColor = baseColor * 0.7f;
+        darkColor.a = 1f;
+        Color lightColor = baseColor * 1.15f;
+        lightColor.a = 1f;
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                Color pixel = baseColor;
+
+                switch (pattern)
+                {
+                    case "checker":
+                        int cx = x / (size / 4);
+                        int cy = y / (size / 4);
+                        pixel = (cx + cy) % 2 == 0 ? baseColor : darkColor;
+                        break;
+
+                    case "brick":
+                        int brickH = size / 4;
+                        int brickW = size / 2;
+                        int row = y / brickH;
+                        int offsetX = (row % 2 == 0) ? 0 : brickW / 2;
+                        int bx = (x + offsetX) % brickW;
+                        int by = y % brickH;
+                        bool isMortar = bx < 2 || by < 2;
+                        pixel = isMortar ? darkColor * 0.8f : baseColor;
+                        pixel.a = 1f;
+                        break;
+
+                    case "tile":
+                        int tileSize = size / 4;
+                        int tx = x % tileSize;
+                        int ty = y % tileSize;
+                        bool isGrout = tx < 2 || ty < 2;
+                        pixel = isGrout ? darkColor * 0.6f : baseColor;
+                        pixel.a = 1f;
+                        break;
+
+                    case "stripe":
+                        int stripeW = size / 8;
+                        pixel = ((x + y) / stripeW) % 2 == 0 ? baseColor : darkColor;
+                        break;
+
+                    case "wood":
+                        float wave = Mathf.Sin(y * 0.3f + Mathf.Sin(x * 0.05f) * 4f) * 0.5f + 0.5f;
+                        pixel = Color.Lerp(darkColor, lightColor, wave);
+                        pixel.a = 1f;
+                        break;
+
+                    case "metal":
+                        float noise = Mathf.PerlinNoise(x * 0.1f, y * 0.1f);
+                        pixel = Color.Lerp(darkColor, lightColor, noise);
+                        pixel.a = 1f;
+                        break;
+
+                    case "dots":
+                        int dotSpacing = size / 4;
+                        int dx = x % dotSpacing - dotSpacing / 2;
+                        int dy = y % dotSpacing - dotSpacing / 2;
+                        float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                        pixel = dist < dotSpacing * 0.3f ? lightColor : baseColor;
+                        break;
+                }
+
+                tex.SetPixel(x, y, pixel);
+            }
+        }
+
+        tex.Apply();
+        return tex;
     }
 
     static GameObject MakeBox(string name, GameObject parent, Vector3 pos, Vector3 scale, Material mat, bool isGround)
