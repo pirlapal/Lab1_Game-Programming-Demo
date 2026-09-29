@@ -73,6 +73,13 @@ public class SceneBuilder : Editor
         MakeBox("Step_Small", room1, V(-6, 0.5f, -3), V(3, 0.5f, 3), platformMat, true);
         MakeCylinder("Pillar", room1, V(4, 2, -4), V(1.5f, 2, 1.5f), wallRoom1Mat);
         MakeBox("Bench", room1, V(6, 0.6f, 7), V(4, 0.3f, 1.5f), accentMat, false);
+        MakeBox("Shelf", room1, V(-8, 2, 7), V(3, 0.2f, 1), hallwayMat, false);
+        MakeBox("Crate_A", room1, V(-7, 0.5f, 6), V(1, 1, 1), movingMat, false);
+        MakeBox("Crate_B", room1, V(-7, 1.5f, 6), V(0.8f, 0.8f, 0.8f), movingMat, false);
+        MakeSphere("Lamp_Orb", room1, V(-8, 2.8f, 7), V(0.5f, 0.5f, 0.5f), accentMat);
+        MakeBox("StairStep1", room1, V(7, 0.4f, -7), V(3, 0.4f, 1.5f), platformMat, true);
+        MakeBox("StairStep2", room1, V(7, 0.8f, -8.5f), V(3, 0.4f, 1.5f), platformMat, true);
+        MakeBox("StairStep3", room1, V(7, 1.2f, -10), V(3, 0.4f, 1.5f), platformMat, false);
 
         // ── Hallway ─────────────────────────────────────────────────
         GameObject hallway = new GameObject("Hallway");
@@ -101,6 +108,14 @@ public class SceneBuilder : Editor
         MakeBox("Table", room2, V(35, 1, -5), V(3, 0.3f, 2), hallwayMat, false);
         MakeCylinder("Column_A", room2, V(27, 2, 7), V(1, 2, 1), wallRoom2Mat);
         MakeCylinder("Column_B", room2, V(33, 2, 7), V(1, 2, 1), wallRoom2Mat);
+        MakeBox("Ramp", room2, V(37, 0.5f, 4), V(4, 1, 2), platformMat, true);
+        MakeBox("WallShelf_A", room2, V(39, 2.5f, -8), V(2, 0.2f, 1), hallwayMat, false);
+        MakeBox("WallShelf_B", room2, V(39, 3.5f, -8), V(2, 0.2f, 1), hallwayMat, false);
+        MakeSphere("Orb_Small", room2, V(39, 2.9f, -8), V(0.4f, 0.4f, 0.4f), movingMat);
+        MakeSphere("Orb_Large", room2, V(39, 3.9f, -8), V(0.6f, 0.6f, 0.6f), accentMat);
+        MakeBox("Pedestal", room2, V(30, 0.5f, 8), V(2, 1, 2), floorRoom2Mat, false);
+        MakeCylinder("Vase", room2, V(30, 1.5f, 8), V(0.6f, 0.8f, 0.6f), accentMat);
+        MakeBox("Barrier", room2, V(35, 0.5f, 0), V(0.5f, 1, 6), wallRoom2Mat, false);
 
         // ── Player ──────────────────────────────────────────────────
         GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
