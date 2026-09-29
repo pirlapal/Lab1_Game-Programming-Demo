@@ -196,9 +196,16 @@ public class SceneBuilder : Editor
         string path = "Assets/Materials/" + name + ".mat";
         Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (existing != null)
-            return existing;
+        {
+            AssetDatabase.DeleteAsset(path);
+        }
 
-        Material mat = new Material(Shader.Find("Standard"));
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Standard");
+
+        Material mat = new Material(shader);
+        mat.SetColor("_BaseColor", color);
         mat.color = color;
         AssetDatabase.CreateAsset(mat, path);
         return mat;
