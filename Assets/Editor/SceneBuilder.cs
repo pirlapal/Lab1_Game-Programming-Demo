@@ -273,10 +273,18 @@ public class SceneBuilder : Editor
         mat.SetColor("_BaseColor", Color.white);
         mat.color = Color.white;
 
+        Vector2 tiling = new Vector2(4f, 4f);
+
         if (shader.name.Contains("Universal"))
+        {
             mat.SetTexture("_BaseMap", loadedTex);
+            mat.SetTextureScale("_BaseMap", tiling);
+        }
         else
+        {
             mat.SetTexture("_MainTex", loadedTex);
+            mat.SetTextureScale("_MainTex", tiling);
+        }
 
         AssetDatabase.CreateAsset(mat, matPath);
         return mat;
@@ -285,9 +293,9 @@ public class SceneBuilder : Editor
     static Texture2D GenerateTexture(Color baseColor, string pattern, int size)
     {
         Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Color darkColor = baseColor * 0.7f;
+        Color darkColor = baseColor * 0.45f;
         darkColor.a = 1f;
-        Color lightColor = baseColor * 1.15f;
+        Color lightColor = baseColor * 1.4f;
         lightColor.a = 1f;
 
         for (int y = 0; y < size; y++)
