@@ -11,11 +11,11 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private float currentYaw;
     private float currentPitch = 15f;
+    private bool cameraActive = true;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        LockCursor();
 
         if (target != null)
         {
@@ -27,38 +27,26 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            if (Cursor.lockState == CursorLockMode.Locked)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
+            UnlockCursor();
         }
 
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame
-            && Cursor.lockState != CursorLockMode.Locked)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && !cameraActive)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            LockCursor();
         }
     }
 
     void LateUpdate()
     {
         if (target == null) return;
-        if (Cursor.lockState != CursorLockMode.Locked) return;
 
-        Vector2 mouseDelta = Vector2.zero;
-        if (Mouse.current != null)
-            mouseDelta = Mouse.current.delta.ReadValue();
-
-        currentYaw += mouseDelta.x * mouseSensitivity;
-        currentPitch -= mouseDelta.y * mouseSensitivity;
-        currentPitch = Mathf.Clamp(currentPitch, -10f, 60f);
+        if (cameraActive && Mouse.current != null)
+        {
+            Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+            currentYaw += mouseDelta.x * mouseSensitivity;
+            currentPitch -= mouseDelta.y * mouseSensitivity;
+            currentPitch = Mathf.Clamp(currentPitch, -10f, 60f);
+        }
 
         Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
         Vector3 offset = rotation * new Vector3(0f, 0f, -distance);
@@ -66,5 +54,19 @@ public class ThirdPersonCamera : MonoBehaviour
 
         transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
         transform.LookAt(target.position + Vector3.up * 1f);
+    }
+
+    void LockCursor()
+    {
+        cameraActive = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void UnlockCursor()
+    {
+        cameraActive = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
