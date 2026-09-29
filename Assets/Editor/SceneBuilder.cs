@@ -4,6 +4,30 @@ using UnityEditor.SceneManagement;
 
 public class SceneBuilder : Editor
 {
+    [MenuItem("Lab1/Fix Input Settings (Run This First)")]
+    static void FixInputSettings()
+    {
+        SerializedObject projectSettings = new SerializedObject(
+            AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
+        SerializedProperty inputHandler = projectSettings.FindProperty("activeInputHandler");
+        if (inputHandler != null && inputHandler.intValue != 2)
+        {
+            inputHandler.intValue = 2;
+            projectSettings.ApplyModifiedProperties();
+            AssetDatabase.SaveAssets();
+            EditorUtility.DisplayDialog("Input Settings Fixed",
+                "Active Input Handling changed to 'Both'.\n\n" +
+                "Unity needs to restart for this to take effect.\n" +
+                "Please close and reopen the project now.",
+                "OK");
+        }
+        else
+        {
+            EditorUtility.DisplayDialog("Input Settings",
+                "Input settings are already correct.", "OK");
+        }
+    }
+
     [MenuItem("Lab1/Build Entire Scene")]
     static void Build()
     {
@@ -12,6 +36,7 @@ public class SceneBuilder : Editor
             "Build It", "Cancel"))
             return;
 
+        FixInputSettingsQuiet();
         SetupGroundLayer();
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -172,6 +197,19 @@ public class SceneBuilder : Editor
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
+
+    static void FixInputSettingsQuiet()
+    {
+        SerializedObject projectSettings = new SerializedObject(
+            AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
+        SerializedProperty inputHandler = projectSettings.FindProperty("activeInputHandler");
+        if (inputHandler != null && inputHandler.intValue != 2)
+        {
+            inputHandler.intValue = 2;
+            projectSettings.ApplyModifiedProperties();
+            AssetDatabase.SaveAssets();
+        }
+    }
 
     static Vector3 V(float x, float y, float z)
     {
